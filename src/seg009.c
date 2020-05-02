@@ -1765,7 +1765,11 @@ size_t digi_remaining_length = 0;
 // The properties of the audio device.
 SDL_AudioSpec* digi_audiospec = NULL;
 // The desired samplerate. Everything will be resampled to this.
+#ifdef NXDK
+const int digi_samplerate = 48000;
+#else
 const int digi_samplerate = 44100;
+#endif
 
 void stop_digi() {
 //	SDL_PauseAudio(1);
@@ -2003,13 +2007,15 @@ void init_digi() {
 	desired->samples = 1024;
 	desired->callback = audio_callback;
 	desired->userdata = NULL;
-	if (SDL_OpenAudio(desired, NULL) != 0) {
+	SDL_AudioSpec obtained;
+	if (SDL_OpenAudio(desired, &obtained) != 0) {
 		sdlperror("SDL_OpenAudio");
 		//quit(1);
 		digi_unavailable = 1;
 		return;
 	}
 	//SDL_PauseAudio(0);
+	memcpy(desired, &obtained, sizeof(SDL_AudioSpec));
 	digi_audiospec = desired;
 }
 
